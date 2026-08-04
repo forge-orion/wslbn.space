@@ -1,0 +1,14 @@
+.git
+.gitmodules
+.github/
+node_modules/
+.gitignore
+.dockerignore
+.env
+.env.local
+README.md
+AGENTS.md
+.nuxt/
+.output/
+.data/
+dist/

@@ -1,0 +1,28 @@
+# Cloudflare Tunnel — exposes the blog publicly without opening ports.
+#
+# Start together with the blog:
+#   docker compose -f docker-compose.yml -f docker-compose.cloudflared.yml up -d
+#
+# Setup:
+#   1. Cloudflare Zero Trust dashboard → Networks → Tunnels → create a
+#      "cloudflared" tunnel (remote-managed), copy the tunnel token.
+#   2. Set TUNNEL_TOKEN in Portainer stack env (or .env next to the compose files).
+#   3. In the tunnel's Public Hostname entry set:
+#        hostname = wslbn.space
+#        service  = http://blog:80
+#      (service name in the same Docker network; not 127.0.0.1 — that would
+#      be the cloudflared container itself.)
+
+services:
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: wslbn_cloudflared
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN:?TUNNEL_TOKEN missing}
+    depends_on:
+      blog:
+        condition: service_healthy
+    networks:
+      - wslbn

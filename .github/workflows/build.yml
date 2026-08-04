@@ -1,0 +1,26 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build blog image (runs npm run generate inside Dockerfile)
+        run: docker build -t wslbn-space-blog:ci .
+
+      - name: Smoke-test generated site
+        run: |
+          docker run -d --name blog -p 8080:80 wslbn-space-blog:ci
+          for i in $(seq 1 15); do
+            curl -sf http://localhost:8080/ > /dev/null && break
+            sleep 1
+          done
+          curl -sf http://localhost:8080/ | grep -q "wslbn.space"
+          curl -sf http://localhost:8080/posts/hello-world/ | grep -q "Hello, wslbn.space"
+          docker rm -f blog
