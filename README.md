@@ -76,3 +76,6 @@ docker-compose.cloudflared.yml
 docker/nginx.conf
 .github/workflows/build.yml   # CI: docker build + smoke test
 ```
+
+Canonical domain: [wslbn.space](https://wslbn.space). Repo:
+[weselben/wslbn.space](https://github.com/weselben/wslbn.space).
