@@ -1,2 +1,5 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
+
+/* Class-based dark mode: @nuxtjs/color-mode toggles `.dark` on <html>. */
+@custom-variant dark (&:where(.dark, .dark *));

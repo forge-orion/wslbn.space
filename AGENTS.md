@@ -167,6 +167,11 @@ draft: false                                      # true keeps it off the site
 - Tailwind v4 is wired via `@tailwindcss/vite` and `@plugin
   "@tailwindcss/typography"` in `assets/css/main.css`. Add Tailwind
   classes inline; no `tailwind.config.ts` needed for the typography plugin.
+- Dark mode is class-based: `@custom-variant dark` in `assets/css/main.css`
+  plus `@nuxtjs/color-mode`, which puts `.dark` on `<html>` (dark by
+  default, toggled from the header, persisted in localStorage). Pair every
+  light class with a `dark:` variant — the dark palette is `stone`, the
+  light one stays `neutral`.
 - Do not hand-edit `themes/` — this repo does not use a theme; it builds
   the layout in `app.vue` and `components/`.
 

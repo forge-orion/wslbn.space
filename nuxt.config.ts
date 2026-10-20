@@ -3,7 +3,13 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  modules: ['@nuxt/content'],
+  modules: ['@nuxt/content', '@nuxtjs/color-mode'],
+
+  // Dark by default; the header toggle switches the stored preference.
+  colorMode: {
+    preference: 'dark',
+    fallback: 'dark',
+  },
 
   css: ['~/assets/css/main.css'],
 

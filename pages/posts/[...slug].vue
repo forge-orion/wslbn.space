@@ -31,11 +31,11 @@ useSeoMeta({
   <article v-if="post">
     <header class="mb-8">
       <h1 class="text-3xl font-bold tracking-tight">{{ post.title }}</h1>
-      <div class="mt-2 flex items-center gap-3 text-sm text-neutral-500">
+      <div class="mt-2 flex items-center gap-3 text-sm text-neutral-500 dark:text-stone-400">
         <time :datetime="post.date">
           {{ new Date(post.date).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' }) }}
         </time>
-        <span v-for="tag in post.tags" :key="tag" class="px-2 py-0.5 rounded-full bg-neutral-100 text-neutral-600 text-xs">
+        <span v-for="tag in post.tags" :key="tag" class="px-2 py-0.5 rounded-full bg-neutral-100 text-neutral-600 text-xs dark:bg-stone-800/70 dark:text-stone-300">
           {{ tag }}
         </span>
       </div>
@@ -43,7 +43,7 @@ useSeoMeta({
 
     <ContentRenderer
       :value="post"
-      class="prose prose-neutral max-w-none"
+      class="prose prose-neutral dark:prose-invert max-w-none"
     />
   </article>
 </template>
