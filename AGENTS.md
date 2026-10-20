@@ -322,6 +322,13 @@ Not `http://localhost:80` — that resolves to the `cloudflared` container.
   purpose: as an optional peer dep it otherwise disappears from the
   lockfile and every npm version's `npm ci` then complains about missing
   entries.
+- **Nitro preset is pinned to `static` on purpose.** CF Workers Builds
+  injects `WORKERS_CI`; without the explicit preset Nitro flips to
+  `cloudflare-module`, emits a `.wrangler/deploy/config.json` redirect and
+  a server entry that a static site never produces — the deploy then fails
+  on a missing `index.mjs`. `nuxt.config.ts` also deletes a stale
+  `.wrangler/deploy/` before every build because the CF build-output cache
+  can restore one from an older non-static build. Don't remove either.
 - **No email exposure in content.** When posting screenshots or logs that
   contain personal info, scrub them. Even on a private repo, the build
   artifact is public.

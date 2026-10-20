@@ -1,3 +1,4 @@
+import { rmSync } from 'node:fs'
 import tailwindcss from '@tailwindcss/vite'
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
@@ -12,6 +13,15 @@ export default defineNuxtConfig({
   // entry-point instead of publishing the static assets.
   nitro: {
     preset: 'static',
+  },
+
+  // CF's build-output cache can restore a `.wrangler/deploy/config.json`
+  // redirect left over from an older cloudflare-module build; it would
+  // hijack `wrangler deploy` away from the assets-only wrangler.jsonc.
+  hooks: {
+    'build:before'() {
+      rmSync('.wrangler/deploy', { recursive: true, force: true })
+    },
   },
 
   vite: {
