@@ -8,7 +8,7 @@ useSeoMeta({
 </script>
 
 <template>
-  <article class="prose prose-neutral max-w-none">
+  <article class="prose prose-neutral dark:prose-invert max-w-none">
     <h1>About</h1>
     <p>
       Personal blog of <strong>weselben</strong>. Posts are Markdown files in

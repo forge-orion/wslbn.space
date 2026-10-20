@@ -17,11 +17,11 @@ useSeoMeta({
 
 <template>
   <section>
-    <p class="text-neutral-600 mb-8">
+    <p class="text-neutral-600 mb-8 dark:text-stone-400">
       Stuff that is interesting to me, written down so I don't forget it.
     </p>
 
-    <p v-if="!posts?.length" class="text-neutral-500 italic">
+    <p v-if="!posts?.length" class="text-neutral-500 italic dark:text-stone-500">
       No posts yet.
     </p>
 
