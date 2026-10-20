@@ -6,6 +6,14 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/main.css'],
 
+  // Pin the static preset. CF Workers Builds injects WORKERS_CI, which
+  // otherwise makes Nitro auto-switch to `cloudflare-module`, generate its
+  // own wrangler config, and `wrangler deploy` then fails on a missing
+  // entry-point instead of publishing the static assets.
+  nitro: {
+    preset: 'static',
+  },
+
   vite: {
     plugins: [tailwindcss()],
   },
