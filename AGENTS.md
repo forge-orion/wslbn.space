@@ -223,7 +223,7 @@ docker build -t wslbn-space-blog:latest .
 
 The image is multi-stage:
 
-- `builder` — `node:22-alpine` + Python/g++ for `better-sqlite3`; runs
+- `builder` — `node:24-alpine` + Python/g++ for `better-sqlite3`; runs
   `npm ci` and `npm run generate`.
 - final — `caddy:2-alpine` serving `.output/public/` from `/srv` with
   `docker/Caddyfile` (curl added only for the healthcheck).

@@ -1,13 +1,18 @@
-FROM node:22-alpine AS builder
+FROM node:24-alpine AS builder
 WORKDIR /app
+
+# node:24 ships npm 11, but the lockfile is authored by npm 10 (and CF's
+# build env pins npm 10.9.x too) — npm 11's `npm ci` rejects the lock.
+# Pin npm so the same toolchain validates the tree everywhere.
+RUN npm install -g npm@10.9.9
 
 # better-sqlite3 (pulled in by @nuxt/content v3) needs build tools on alpine.
 RUN apk add --no-cache python3 make g++
 
 COPY package.json package-lock.json ./
 # `npm ci` (not `install`): installs exactly from the committed lockfile.
-# npm 10 on node:22-alpine crashes with `Cannot read properties of null
-# (reading 'edgesOut')` when resolving this tree via `npm install`.
+# npm crashes with `Cannot read properties of null (reading 'edgesOut')`
+# when resolving this tree via `npm install`.
 RUN npm ci --no-audit --no-fund
 
 COPY . .
