@@ -1,8 +1,14 @@
 <script setup lang="ts">
 const route = useRoute()
 
-const { data: post } = await useAsyncData(`post-${route.path}`, () =>
-  queryCollection('posts').path(route.path).first(),
+// Hosts redirect direct visits to a trailing-slash URL (CF `auto-trailing-slash`,
+// Caddy `try_files`), while stored post paths and in-app links are slash-free.
+// Querying the raw route path makes the client-side re-query miss, hydrate to
+// null, and blank out the prerendered page.
+const path = route.path.replace(/\/+$/, '') || '/'
+
+const { data: post } = await useAsyncData(`post-${path}`, () =>
+  queryCollection('posts').path(path).first(),
 )
 
 if (!post.value) {
