@@ -7,9 +7,9 @@ anything — the commands and gotchas here cost real time to relearn.
 
 A personal blog at **wslbn.space**. Posts are Markdown files under
 `content/posts/`, rendered at build time by `@nuxt/content` v3 (MDC + Shiki)
-into a fully static site, served by nginx, exposed publicly via a Cloudflare
-Tunnel. There is no admin UI and no database — authoring is committing a
-`.md` file.
+into a fully static site, served by Caddy in Docker (exposed via a
+Cloudflare Tunnel) or published to Cloudflare Workers. There is no admin UI
+and no database — authoring is committing a `.md` file.
 
 ## Setup
 
@@ -29,11 +29,18 @@ docker compose up --build blog
 # → http://localhost:8080
 ```
 
-Generate the static site (what the deploy image runs):
+Generate the static site (what both deploy targets run):
 
 ```bash
 npm run generate
 # → .output/public/
+```
+
+Preview the Workers deployment locally (needs `npm run generate` first):
+
+```bash
+npm run wrangler:dev
+# → http://localhost:8787
 ```
 
 ## Environment
@@ -52,7 +59,9 @@ Docker run-time env (set via Portainer stack env, not committed):
 
 - `TUNNEL_TOKEN` — see above.
 
-No secrets in the repo. `TUNNEL_TOKEN` is the only runtime env var.
+No secrets in the repo. `TUNNEL_TOKEN` is the only Docker runtime env var;
+GitHub Actions uses the repo secrets `CLOUDFLARE_API_TOKEN` and
+`CLOUDFLARE_ACCOUNT_ID` for the Workers deploy (never file-tree files).
 
 ## AI content generation (READ BEFORE WRITING POSTS)
 
@@ -174,13 +183,16 @@ ls .output/public/posts/hello-world/
 # Must contain index.html
 ```
 
-Smoke-test inside Docker:
+Smoke-test inside Docker (the compose file publishes no host port —
+cloudflared reaches the container over the Docker network, so map one for
+the test):
 
 ```bash
-docker compose up -d blog
+docker build -t wslbn-space-blog:latest .
+docker run -d --rm --name blog-smoke -p 8080:80 wslbn-space-blog:latest
 curl -sf http://localhost:8080/ | grep -q "Stuff that is interesting to me"
 curl -sf -o /dev/null -w 'HTTP %{http_code} /posts/hello-world/\n' http://localhost:8080/posts/hello-world/
-docker compose down
+docker rm -f blog-smoke
 ```
 
 CI runs `docker build` and a smoke test on every push and PR. Green means
@@ -213,7 +225,8 @@ The image is multi-stage:
 
 - `builder` — `node:22-alpine` + Python/g++ for `better-sqlite3`; runs
   `npm ci` and `npm run generate`.
-- final — `nginx:alpine` serving `.output/public/` with `docker/nginx.conf`.
+- final — `caddy:2-alpine` serving `.output/public/` from `/srv` with
+  `docker/Caddyfile` (curl added only for the healthcheck).
 
 Deploy (manual via Portainer):
 
@@ -223,9 +236,22 @@ docker compose -f docker-compose.yml -f docker-compose.cloudflared.yml up -d
 
 Stops/restarts the same way. Logs: `docker compose logs -f`.
 
-CI does **not** deploy. `weselben` redeploys from Portainer after merging.
-The CI workflow (`.github/workflows/build.yml`) only builds + smoke-tests;
-it exists so PRs can't land broken content.
+CI does not deploy the Docker/Tunnel stack — `weselben` redeploys from
+Portainer after merging. The CI workflow (`.github/workflows/build.yml`)
+only builds + smoke-tests; it exists so PRs can't land broken content.
+Merging to `main` additionally triggers the Workers publish below.
+
+### Cloudflare Workers (auto-deploy on main)
+
+`.github/workflows/deploy-workers.yml` publishes the same static output to
+Cloudflare Workers on every merge to `main`: `npm run generate`, then
+`wrangler deploy` via `cloudflare/wrangler-action@v3`. Config lives in
+`wrangler.jsonc` — assets-only, no worker script, same pretty-URL handling
+as Caddy. Requires repo secrets `CLOUDFLARE_API_TOKEN` (account: Workers
+Scripts edit permission) and `CLOUDFLARE_ACCOUNT_ID`.
+
+The Docker/Tunnel path stays the primary setup; Workers is a second
+publish target built from the same `npm run generate` output.
 
 Public hostname routing: in Cloudflare Zero Trust → Tunnels → your tunnel
 → Public Hostnames, entry must be:
@@ -239,7 +265,9 @@ Not `http://localhost:80` — that resolves to the `cloudflared` container.
 
 - Title: Conventional Commits — `<type>(<scope>): <summary>` (`feat: …`,
   `fix: …`, `chore: …`, `docs: …`, `content: …`).
-- Branch off `main`, push, open **draft** PR with `gh pr create --draft`.
+- **Never commit directly to `main`.** Branch protection rejects direct
+  pushes — every change lands via PR, no exceptions (including the owner).
+  Branch off `main`, push, open **draft** PR with `gh pr create --draft`.
 - Don't merge own PRs.
 - One concern per PR. Content-only PRs (just a new post) are welcome and
   can skip the full template — title + 1-sentence body is enough.
@@ -272,6 +300,11 @@ Not `http://localhost:80` — that resolves to the `cloudflared` container.
 - **`better-sqlite3` on Alpine.** Already handled — Dockerfile installs
   `python3 make g++` before `npm ci`. Don't remove that line without
   retesting in CI.
+- **npm install scripts are allowlisted.** `package.json` has an
+  `allowScripts` block (`better-sqlite3`, `esbuild`). After adding a
+  dependency with an install script, run `npm install-scripts approve <pkg>`
+  and commit the `allowScripts` change — builds fail with missing bindings
+  otherwise, in CI and Docker alike.
 - **No email exposure in content.** When posting screenshots or logs that
   contain personal info, scrub them. Even on a private repo, the build
   artifact is public.

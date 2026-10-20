@@ -6,7 +6,9 @@
     "dev": "nuxt dev",
     "build": "nuxt build",
     "generate": "nuxt generate",
-    "preview": "nuxt preview"
+    "preview": "nuxt preview",
+    "wrangler:dev": "wrangler dev",
+    "wrangler:deploy": "wrangler deploy"
   },
   "dependencies": {
     "@nuxt/content": "^3.6.3",
@@ -18,6 +20,11 @@
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.16",
     "@tailwindcss/vite": "^4.1.0",
-    "tailwindcss": "^4.1.0"
+    "tailwindcss": "^4.1.0",
+    "wrangler": "^4.151.2"
+  },
+  "allowScripts": {
+    "better-sqlite3@12.11.1": true,
+    "esbuild@0.28.1": true
   }
 }
