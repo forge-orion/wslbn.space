@@ -268,7 +268,10 @@ Not `http://localhost:80` — that resolves to the `cloudflared` container.
 ## Pull requests
 
 - Title: Conventional Commits — `<type>(<scope>): <summary>` (`feat: …`,
-  `fix: …`, `chore: …`, `docs: …`, `content: …`).
+  `fix: …`, `chore: …`, `docs: …`, `content: …`). Applies to PR titles and
+  to the squash commit subject alike.
+- **Squash-merge only.** One commit lands on `main` per PR — never a merge
+  commit, never a rebase pile.
 - **Never commit directly to `main`.** Branch protection rejects direct
   pushes — every change lands via PR, no exceptions (including the owner).
   Branch off `main`, push, open **draft** PR with `gh pr create --draft`.
