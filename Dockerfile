@@ -1,10 +1,10 @@
 FROM node:24-alpine AS builder
 WORKDIR /app
 
-# node:24 ships npm 11, but the lockfile is authored by npm 10 (and CF's
-# build env pins npm 10.9.x too) — npm 11's `npm ci` rejects the lock.
-# Pin npm so the same toolchain validates the tree everywhere.
-RUN npm install -g npm@10.9.9
+# node:24 ships npm 11, which rejects the npm-10.9.2-authored lockfile.
+# Pin the same npm as Cloudflare Workers Builds (10.9.2) so the lockfile
+# is validated by one toolchain everywhere. See AGENTS.md gotchas.
+RUN npm install -g npm@10.9.2
 
 # better-sqlite3 (pulled in by @nuxt/content v3) needs build tools on alpine.
 RUN apk add --no-cache python3 make g++

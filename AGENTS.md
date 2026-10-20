@@ -312,12 +312,16 @@ Not `http://localhost:80` — that resolves to the `cloudflared` container.
   dependency with an install script, run `npm install-scripts approve <pkg>`
   and commit the `allowScripts` change — builds fail with missing bindings
   otherwise, in CI and Docker alike.
-- **Lockfile must stay npm-10-authored.** Cloudflare's Workers Builds image
-  pins `npm@10.9.2` and runs its own `npm clean-install` before the build
-  command; an npm 11+ lockfile fails that step and there is no npm version
-  override yet. Regenerate the lockfile with npm 10.9.9 (inside
-  `node:22-alpine`, or via the npm pinned in the Dockerfile builder) —
-  never with the host npm.
+- **Lockfile must stay npm-10.9.2-authored.** Cloudflare's Workers Builds
+  image pins `npm@10.9.2` and runs its own `npm clean-install` before the
+  build command; the Docker builder pins the same version (node:24's
+  bundled npm 11 rejects the lockfile). Regenerate the lockfile with
+  npm 10.9.2 — e.g.
+  `npx -y npm@10.9.2 install --package-lock-only` inside `node:24-alpine`
+  — never with the host npm. `oxc-parser` is pinned as a devDependency on
+  purpose: as an optional peer dep it otherwise disappears from the
+  lockfile and every npm version's `npm ci` then complains about missing
+  entries.
 - **No email exposure in content.** When posting screenshots or logs that
   contain personal info, scrub them. Even on a private repo, the build
   artifact is public.
