@@ -59,9 +59,9 @@ Docker run-time env (set via Portainer stack env, not committed):
 
 - `TUNNEL_TOKEN` — see above.
 
-No secrets in the repo. `TUNNEL_TOKEN` is the only Docker runtime env var;
-GitHub Actions uses the repo secrets `CLOUDFLARE_API_TOKEN` and
-`CLOUDFLARE_ACCOUNT_ID` for the Workers deploy (never file-tree files).
+No secrets in the repo. `TUNNEL_TOKEN` is the only runtime env var; the
+Workers deploy authenticates through Cloudflare's GitHub App, so it needs
+no repo secrets either.
 
 ## AI content generation (READ BEFORE WRITING POSTS)
 
@@ -239,16 +239,20 @@ Stops/restarts the same way. Logs: `docker compose logs -f`.
 CI does not deploy the Docker/Tunnel stack — `weselben` redeploys from
 Portainer after merging. The CI workflow (`.github/workflows/build.yml`)
 only builds + smoke-tests; it exists so PRs can't land broken content.
-Merging to `main` additionally triggers the Workers publish below.
+The Workers publish runs on Cloudflare's side (see below).
 
 ### Cloudflare Workers (auto-deploy on main)
 
-`.github/workflows/deploy-workers.yml` publishes the same static output to
-Cloudflare Workers on every merge to `main`: `npm run generate`, then
-`wrangler deploy` via `cloudflare/wrangler-action@v3`. Config lives in
-`wrangler.jsonc` — assets-only, no worker script, same pretty-URL handling
-as Caddy. Requires repo secrets `CLOUDFLARE_API_TOKEN` (account: Workers
-Scripts edit permission) and `CLOUDFLARE_ACCOUNT_ID`.
+The site publishes to Cloudflare Workers through **Workers Builds**: the
+Cloudflare dashboard holds the GitHub App connection and runs
+`npm run generate` + `wrangler deploy` on every push to `main`. Deploy
+config lives in `wrangler.jsonc` — assets-only, no worker script, same
+pretty-URL handling as Caddy. No repo secrets and no Actions workflow
+involved; the connection is managed in the Cloudflare dashboard
+(Workers & Pages → the worker → Settings → Build).
+
+Manual deploy from a machine works too: `npx wrangler login` once, then
+`npm run generate && npm run wrangler:deploy`.
 
 The Docker/Tunnel path stays the primary setup; Workers is a second
 publish target built from the same `npm run generate` output.
