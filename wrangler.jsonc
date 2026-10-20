@@ -1,0 +1,18 @@
+// Cloudflare Workers deploy config for wslbn.space.
+//
+// The site is fully static, so this is an assets-only Worker: no worker
+// script, just the files from `npm run generate` served by Cloudflare's
+// edge with the same pretty-URL handling as the Docker/Caddy setup.
+//
+//   npm run generate      # build .output/public first
+//   npm run wrangler:dev  # preview locally on http://localhost:8787
+//   npm run wrangler:deploy
+{
+  "name": "wslbn-space",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./.output/public",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page"
+  }
+}
