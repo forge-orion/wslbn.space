@@ -276,10 +276,12 @@ Not `http://localhost:80` — that resolves to the `cloudflared` container.
   `fix: …`, `chore: …`, `docs: …`, `content: …`). Applies to PR titles and
   to the squash commit subject alike.
 - **Squash-merge only.** One commit lands on `main` per PR — never a merge
-  commit, never a rebase pile.
+  commit, never a rebase pile. Enforced in the repo's merge settings (only
+  "Squash and merge" is enabled).
 - **Never commit directly to `main`.** Branch protection rejects direct
   pushes — every change lands via PR, no exceptions (including the owner).
-  Branch off `main`, push, open **draft** PR with `gh pr create --draft`.
+  Required status check: `docker-build`. Enforced for admins too. Branch
+  off `main`, push, open **draft** PR with `gh pr create --draft`.
 - Don't merge own PRs.
 - One concern per PR. Content-only PRs (just a new post) are welcome and
   can skip the full template — title + 1-sentence body is enough.
