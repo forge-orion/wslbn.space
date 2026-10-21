@@ -16,7 +16,7 @@ function toggleTheme() {
         <NuxtLink to="/" class="hover:text-neutral-500 transition-colors dark:hover:text-stone-400">Posts</NuxtLink>
         <NuxtLink to="/about" class="hover:text-neutral-500 transition-colors dark:hover:text-stone-400">About</NuxtLink>
         <a
-          href="https://github.com/weselben"
+          href="https://github.com/weselben/wslbn.space"
           target="_blank"
           rel="noopener"
           class="hover:text-neutral-500 transition-colors dark:hover:text-stone-400"
