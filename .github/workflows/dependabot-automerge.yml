@@ -46,13 +46,23 @@ jobs:
               });
               const build = runs.check_runs.find((r) => r.name === 'docker-build');
               if (build?.conclusion === 'success') {
-                await github.rest.pulls.merge({
-                  ...context.repo,
-                  pull_number: pr.number,
-                  merge_method: 'squash',
-                  commit_title: pr.title,
-                });
-                core.info(`Merged #${pr.number}`);
+                try {
+                  await github.rest.pulls.merge({
+                    ...context.repo,
+                    pull_number: pr.number,
+                    merge_method: 'squash',
+                    commit_title: pr.title,
+                  });
+                  core.info(`Merged #${pr.number}`);
+                } catch (error) {
+                  // Another path (fallback job, human) merged first — that
+                  // is a success, not a failure.
+                  if (String(error?.message).includes('Pull Request is not mergeable')) {
+                    core.info(`#${pr.number} already merged elsewhere`);
+                  } else {
+                    throw error;
+                  }
+                }
                 return;
               }
               if (build?.conclusion && build.conclusion !== 'success') {
