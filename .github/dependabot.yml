@@ -9,6 +9,14 @@ updates:
         update-types:
           - minor
           - patch
+    ignore:
+      # CF deploy toolchain — kept on manual bumps only:
+      # - wrangler drives the CF deploy; upgrades can change deploy behavior
+      # - better-sqlite3 versions are hard-coded in .npmrc allow-scripts
+      # - oxc-parser is pinned to keep the npm-10.9.2 lockfile format intact
+      - dependency-name: wrangler
+      - dependency-name: better-sqlite3
+      - dependency-name: oxc-parser
   - package-ecosystem: github-actions
     directory: /
     schedule:
