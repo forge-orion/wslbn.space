@@ -1,0 +1,64 @@
+name: Auto-merge dependabot lockfile updates
+
+# Dependabot PRs that touch only package-lock.json are security /
+# transitive bumps: merge them automatically once the required
+# docker-build check passes. Anything editing package.json (version
+# groups, majors) stays manual.
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: dependabot-automerge-${{ github.event.number }}
+  cancel-in-progress: true
+
+jobs:
+  automerge:
+    runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]'
+    steps:
+      - name: Auto-merge lockfile-only updates
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              ...context.issue,
+              per_page: 100,
+            });
+            const names = files.map((f) => f.filename);
+            if (!names.length || !names.every((n) => n === 'package-lock.json')) {
+              core.info(`Manual review required, files: ${names.join(', ')}`);
+              return;
+            }
+
+            const pr = context.payload.pull_request;
+            const deadline = Date.now() + 15 * 60 * 1000;
+
+            while (Date.now() < deadline) {
+              const { data: runs } = await github.rest.checks.listForRef({
+                ...context.repo,
+                ref: pr.head.sha,
+              });
+              const build = runs.check_runs.find((r) => r.name === 'docker-build');
+              if (build?.conclusion === 'success') {
+                await github.rest.pulls.merge({
+                  ...context.repo,
+                  pull_number: pr.number,
+                  merge_method: 'squash',
+                  commit_title: pr.title,
+                });
+                core.info(`Merged #${pr.number}`);
+                return;
+              }
+              if (build?.conclusion && build.conclusion !== 'success') {
+                core.setFailed(`docker-build concluded: ${build.conclusion}`);
+                return;
+              }
+              await new Promise((r) => setTimeout(r, 30000));
+            }
+            core.setFailed('Timed out waiting for docker-build');
