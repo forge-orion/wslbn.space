@@ -20,7 +20,7 @@ useSeoMeta({
     </p>
     <p>
       Canonical domain: <a href="https://wslbn.space">wslbn.space</a>.
-      Source: <a href="https://github.com/weselben">github.com/weselben</a>.
+      Source: <a href="https://github.com/weselben/wslbn.space">github.com/weselben/wslbn.space</a>.
     </p>
   </article>
 </template>
