@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       posts_only: ${{ steps.detect.outputs.posts_only }}
+      has_posts: ${{ steps.detect.outputs.has_posts }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -18,10 +19,18 @@ jobs:
         run: |
           files=$(git diff --name-only "${{ github.event.pull_request.base.sha }}"...HEAD)
           echo "$files"
-          if echo "$files" | grep -qv '^content/posts/.*\.md$'; then
-            echo "posts_only=false" >> "$GITHUB_OUTPUT"
+          # AGENTS.md rides along with posts and needs no build — drop it
+          # before judging. Anything else non-post => full docker build.
+          files=$(echo "$files" | grep -v '^AGENTS\.md$' || true)
+          if echo "$files" | grep -q '^content/posts/.*\.md$'; then
+            echo "has_posts=true" >> "$GITHUB_OUTPUT"
           else
+            echo "has_posts=false" >> "$GITHUB_OUTPUT"
+          fi
+          if [ -z "$files" ] || ! echo "$files" | grep -qv '^content/posts/.*\.md$'; then
             echo "posts_only=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "posts_only=false" >> "$GITHUB_OUTPUT"
           fi
 
   docker-build:
@@ -70,10 +79,17 @@ jobs:
 
   validate-posts:
     needs: detect
-    if: needs.detect.outputs.posts_only == 'true'
+    if: needs.detect.outputs.has_posts == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
 
+      - name: Collect changed posts
+        id: files
+        run: |
+          files=$(git diff --name-only "${{ github.event.pull_request.base.sha }}"...HEAD -- 'content/posts/*.md')
+          echo "$files"
+          echo "list=$(echo "$files" | tr '\n' ' ')" >> "$GITHUB_OUTPUT"
+
       - name: Validate post front matter + markdown
-        run: node scripts/validate-posts.mjs
+        run: node scripts/validate-posts.mjs ${{ steps.files.outputs.list }}
