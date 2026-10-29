@@ -18,10 +18,13 @@ jobs:
         run: |
           files=$(git diff --name-only "${{ github.event.pull_request.base.sha }}"...HEAD)
           echo "$files"
-          if echo "$files" | grep -qv '^content/posts/.*\.md$'; then
-            echo "posts_only=false" >> "$GITHUB_OUTPUT"
-          else
+          # AGENTS.md rides along with posts and needs no build — drop it
+          # before judging. Anything else non-post => full docker build.
+          files=$(echo "$files" | grep -v '^AGENTS\.md$' || true)
+          if [ -z "$files" ] || ! echo "$files" | grep -qv '^content/posts/.*\.md$'; then
             echo "posts_only=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "posts_only=false" >> "$GITHUB_OUTPUT"
           fi
 
   docker-build:
