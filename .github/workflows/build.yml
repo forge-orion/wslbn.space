@@ -6,7 +6,27 @@ on:
   pull_request:
 
 jobs:
+  detect:
+    runs-on: ubuntu-latest
+    outputs:
+      posts_only: ${{ steps.detect.outputs.posts_only }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - id: detect
+        run: |
+          files=$(git diff --name-only "${{ github.event.pull_request.base.sha }}"...HEAD)
+          echo "$files"
+          if echo "$files" | grep -qv '^content/posts/.*\.md$'; then
+            echo "posts_only=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "posts_only=true" >> "$GITHUB_OUTPUT"
+          fi
+
   docker-build:
+    needs: detect
+    if: needs.detect.outputs.posts_only != 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -47,3 +67,13 @@ jobs:
           curl -sf http://localhost:8080/ | grep -q "wslbn.space"
           curl -sf http://localhost:8080/posts/hello-world/ | grep -q "Hello, wslbn.space"
           docker rm -f blog
+
+  validate-posts:
+    needs: detect
+    if: needs.detect.outputs.posts_only == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Validate post front matter + markdown
+        run: node scripts/validate-posts.mjs
