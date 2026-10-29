@@ -23,7 +23,7 @@
     "@tailwindcss/vite": "^4.1.0",
     "oxc-parser": "^0.155.0",
     "tailwindcss": "^4.1.0",
-    "wrangler": "^4.151.2"
+    "wrangler": "^4.154.0"
   },
   "allowScripts": {
     "better-sqlite3@12.11.1": true,
