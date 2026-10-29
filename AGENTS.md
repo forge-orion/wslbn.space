@@ -273,7 +273,7 @@ Not `http://localhost:80` — that resolves to the `cloudflared` container.
 ## Pull requests
 
 - Title: Conventional Commits — `<type>(<scope>): <summary>` (`feat: …`,
-  `fix: …`, `chore: …`, `docs: …`, `content: …`). Applies to PR titles and
+  `fix: …`, `chore: …`, `docs: …`). Applies to PR titles and
   to the squash commit subject alike.
 - **Posts use `post:`.** Any commit touching `content/posts/*` — new posts
   *and* edits to existing ones — commits as `post: <summary>`, never
