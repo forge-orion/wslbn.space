@@ -11,8 +11,31 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Build blog image (runs npm run generate inside Dockerfile)
-        run: docker build -t wslbn-space-blog:ci .
+      # Docker Hub rate-limits anonymous pulls (429 ToomanyRequests). Same
+      # fallback pattern the GoModel gateway uses for provider rate limits:
+      # on failure, retry through the mirror.gcr.io pull-through cache.
+      - name: Set up buildx with Docker Hub mirror fallback
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: |
+            image=moby/buildkit:buildx-stable-1
+          buildkitd-config-inline: |
+            [registry."docker.io"]
+              mirrors = ["mirror.gcr.io"]
+
+      - name: Build blog image (retry on pull rate limit)
+        run: |
+          for attempt in 1 2 3; do
+            if docker buildx build --load -t wslbn-space-blog:ci .; then
+              break
+            fi
+            if [ "$attempt" = 3 ]; then
+              echo "::error::docker build failed after 3 attempts (mirror + direct)"
+              exit 1
+            fi
+            echo "Attempt $attempt failed — likely Docker Hub rate limit. Backing off 20s."
+            sleep 20
+          done
 
       - name: Smoke-test generated site
         run: |
