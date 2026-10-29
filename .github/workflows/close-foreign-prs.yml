@@ -11,21 +11,24 @@ permissions:
 jobs:
   close:
     runs-on: ubuntu-latest
-    if: >
+    if: >-
       github.actor != 'weselben' &&
+      github.actor != 'forge-orion' &&
       github.actor != 'dependabot[bot]'
     steps:
       - name: Close PR with explanation
         uses: actions/github-script@v9
         with:
           script: |
-            const num = context.issue.number;
+            const num = context.payload.pull_request.number;
+            const { owner, repo } = context.repo;
             await github.rest.issues.createComment({
-              ...context.issue,
-              body: 'This repository only accepts pull requests from @weselben or @dependabot[bot]. Closing — feel free to open an issue instead.'
+              owner, repo,
+              issue_number: num,
+              body: 'This repository only accepts pull requests from @weselben, @forge-orion or @dependabot[bot]. Closing — feel free to open an issue instead.'
             });
             await github.rest.pulls.update({
-              ...context.issue,
+              owner, repo,
               pull_number: num,
               state: 'closed'
             });
